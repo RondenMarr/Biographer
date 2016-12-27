@@ -3,23 +3,17 @@ from wtforms import StringField, SubmitField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired
 
-from ..models import Role
+from ..models import Citizen
 
 
-
-class RoleForm(FlaskForm):
+class CitizenForm(FlaskForm):
     """
-    Form for admin to add or edit a role
+    Form for admin to add or edit a citizen
     """
-    name = StringField('Name', validators=[DataRequired()])
+    firstname = StringField('First Name', validators=[])
+    lastname = StringField('Surname', validators=[DataRequired()])
+    title = StringField('Title')
+#    race =  ChoicesSelect(choices=Citizen.RACES.items()),
     description = StringField('Description', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
-
-class UserAssignForm(FlaskForm):
-    """
-    Form for admin to assign roles to users
-    """
-    role = QuerySelectField(query_factory=lambda: Role.query.all(),
-                            get_label="name")
-    submit = SubmitField('Submit')

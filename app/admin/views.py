@@ -2,9 +2,9 @@ from flask import abort, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
 from . import admin
-from forms import UserAssignForm, RoleForm
+from forms import UserAssignForm,CitizenForm
 from .. import db
-from ..models import  User, Role
+from ..models import  User, Citizen
 
 
 def check_admin():
@@ -13,100 +13,95 @@ def check_admin():
         abort(403)
 
 
-
-# Role Views
-
-
-@admin.route('/roles')
+@admin.route('/citizens')
 @login_required
-def list_roles():
+def list_citizens():
     check_admin()
     """
-    List all roles
+    List all citizens
     """
-    roles = Role.query.all()
-    return render_template('admin/roles/roles.html',
-                           roles=roles, title='Roles')
+    citizens = Citizen.query.all()
+    return render_template('admin/citizens/citizens.html',
+                           citizens=citizens, title='Citizens')
 
 
-@admin.route('/roles/add', methods=['GET', 'POST'])
+@admin.route('/citizens/add', methods=['GET', 'POST'])
 @login_required
-def add_role():
+def add_citizen():
     """
-    Add a role to the database
+    Add a citizen to the database
     """
     check_admin()
 
-    add_role = True
+    add_citizen = True
 
-    form = RoleForm()
+    form = CitizenForm()
     if form.validate_on_submit():
-        role = Role(name=form.name.data,
+        citizen = Citizen(name=form.name.data,
                     description=form.description.data)
 
         try:
-            # add role to the database
-            db.session.add(role)
+            # add citizen to the database
+            db.session.add(citizen)
             db.session.commit()
-            flash('You have successfully added a new role.')
+            flash('You have successfully added a new citizen.')
         except:
-            # in case role name already exists
-            flash('Error: role name already exists.')
+            # in case citizen name already exists
+            flash('Error: citizen name already exists.')
 
-        # redirect to the roles page
-        return redirect(url_for('admin.list_roles'))
+        # redirect to the citizens page
+        return redirect(url_for('admin.list_citizens'))
 
-    # load role template
-    return render_template('admin/roles/role.html', add_role=add_role,
-                           form=form, title='Add Role')
+    # load citizen template
+    return render_template('admin/citizens/citizen.html', add_citizen=add_citizen,
+                           form=form, title='Add Citizen')
 
 
-@admin.route('/roles/edit/<int:id>', methods=['GET', 'POST'])
+@admin.route('/citizens/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
-def edit_role(id):
+def edit_citizen(id):
     """
-    Edit a role
+    Edit a citizen
     """
     check_admin()
 
-    add_role = False
+    add_citizen = False
 
-    role = Role.query.get_or_404(id)
-    form = RoleForm(obj=role)
+    citizen = Citizen.query.get_or_404(id)
+    form = CitizenForm(obj=citizen)
     if form.validate_on_submit():
-        role.name = form.name.data
-        role.description = form.description.data
-        db.session.add(role)
+        citizen.name = form.name.data
+        citizen.description = form.description.data
+        db.session.add(citizen)
         db.session.commit()
-        flash('You have successfully edited the role.')
+        flash('You have successfully edited the citizen.')
 
-        # redirect to the roles page
-        return redirect(url_for('admin.list_roles'))
+        # redirect to the citizens page
+        return redirect(url_for('admin.list_citizens'))
 
-    form.description.data = role.description
-    form.name.data = role.name
-    return render_template('admin/roles/role.html', add_role=add_role,
-                           form=form, title="Edit Role")
+    form.description.data = citizen.description
+    form.name.data = citizen.name
+    return render_template('admin/citizens/citizen.html', add_citizen=add_citizen,
+                           form=form, title="Edit Citizen")
 
 
-@admin.route('/roles/delete/<int:id>', methods=['GET', 'POST'])
+@admin.route('/citizens/delete/<int:id>', methods=['GET', 'POST'])
 @login_required
-def delete_role(id):
+def delete_citizen(id):
     """
-    Delete a role from the database
+    Delete a citizen from the database
     """
     check_admin()
 
-    role = Role.query.get_or_404(id)
-    db.session.delete(role)
+    citizen = Citizen.query.get_or_404(id)
+    db.session.delete(citizen)
     db.session.commit()
-    flash('You have successfully deleted the role.')
+    flash('You have successfully deleted the citizen.')
 
-    # redirect to the roles page
-    return redirect(url_for('admin.list_roles'))
+    # redirect to the citizens page
+    return redirect(url_for('admin.list_citizens'))
 
-    return render_template(title="Delete Role")
-
+    return render_template(title="Delete Citizen")
 
 # User Views
 
@@ -123,30 +118,3 @@ def list_users():
                            users=users, title='Users')
 
 
-@admin.route('/users/assign/<int:id>', methods=['GET', 'POST'])
-@login_required
-def assign_user(id):
-    """
-    Assign a and a role to an user
-    """
-    check_admin()
-
-    user = User.query.get_or_404(id)
-
-    # prevent admin from being assigned a role
-    if user.is_admin:
-        abort(403)
-
-    form = UserAssignForm(obj=user)
-    if form.validate_on_submit():
-        user.role = form.role.data
-        db.session.add(user)
-        db.session.commit()
-        flash('You have successfully assigned a role.')
-
-        # redirect to the roles page
-        return redirect(url_for('admin.list_users'))
-
-    return render_template('admin/users/user.html',
-                           user=user, form=form,
-                           title='Assign User')

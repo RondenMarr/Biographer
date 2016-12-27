@@ -19,8 +19,8 @@ class User(UserMixin, db.Model):
     first_name = db.Column(db.String(60), index=True)
     last_name = db.Column(db.String(60), index=True)
     password_hash = db.Column(db.String(128))
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     is_admin = db.Column(db.Boolean, default=False)
+    citizens = db.relationship('Citizen', back_populates="creator")
 
     @property
     def password(self):
@@ -52,18 +52,34 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-class Role(db.Model):
+class Citizen(db.Model):
     """
-    Create a Role table
+    Create a Citizen table
     """
 
-    __tablename__ = 'roles'
+    __tablename__ = 'citizens'
+
+    RACES = ['Aasimar', 'Bugbear', 'Dragonborn', 'Dwarf', 'Halfling', 'Elf', 'Goblin', 'Gnoll', 'Gnome', 'Half-human', 'Hobgoblin', '', 'Human', 'Kobold', 'Lizardfolk', 'Ogre', 'Orc', 'Tiefling']
+    SEXES = ['male', 'female', 'asexual', 'hermaphrodite', 'unspecified']
+    ALLEGIANCES = ['dragonborn', 'human', 'dwarf', 'orc', 'unaligned']
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(60), unique=True)
+    lastname = db.Column(db.String(20), unique=True)
+    firstname = db.Column(db.String(20), unique=True)
+    title = db.Column(db.String(20), unique=True)
+    race = db.Column('race', db.Enum(*RACES))
+    occupation = db.Column(db.String(30), unique=True)
+    disposition = db.Column(db.String(20), unique=True)
+    allegiance = db.Column('allegiance', db.Enum(*ALLEGIANCES))
+    born = db.Column(db.Integer())
+    died = db.Column(db.Integer())
+    sex = db.Column('sex', db.Enum(*SEXES))
+
     description = db.Column(db.String(200))
-    users = db.relationship('User', backref='role',
-                                lazy='dynamic')
+
+    creator_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    creator = db.relationship("User", back_populates="citizens")
 
     def __repr__(self):
-        return '<Role: {}>'.format(self.name)
+        return '<Citizen: {}>'.format(self.name)
+
